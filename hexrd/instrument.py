@@ -1647,7 +1647,7 @@ class PlanarDetector(object):
         int_xy[on_panel] = int_vals
         return int_xy
 
-        def make_powder_rings(
+    def make_powder_rings(
             self, pd, merge_hkls=False, delta_tth=None,
             delta_eta=10., eta_period=None,
             rmat_s=ct.identity_3x3,  tvec_s=ct.zeros_3,
