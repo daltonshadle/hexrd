@@ -79,6 +79,8 @@ except(ImportError):
 # PARAMETERS
 # =============================================================================
 
+instrument_name_DFLT = 'GE'
+
 beam_energy_DFLT = 65.351
 beam_vec_DFLT = ct.beam_vec
 
@@ -189,8 +191,8 @@ class HEDMInstrument(object):
     """
     def __init__(self, instrument_config=None,
                  image_series=None, eta_vector=None,
-                 instrument_name="instrument"):
-        self._id = instrument_name
+                 instrument_name=None):
+        self._id = instrument_name_DFLT
 
         if eta_vector is None:
             self._eta_vector = eta_vec_DFLT
@@ -198,6 +200,8 @@ class HEDMInstrument(object):
             self._eta_vector = eta_vector
 
         if instrument_config is None:
+            if instrument_name is not None:
+                self._id = instrument_name
             self._num_panels = 1
             self._beam_energy = beam_energy_DFLT
             self._beam_vector = beam_vec_DFLT
@@ -216,6 +220,11 @@ class HEDMInstrument(object):
             self._tvec = t_vec_s_DFLT
             self._chi = chi_DFLT
         else:
+            if instrument_name is None:
+                if 'id' in instrument_config:
+                    self._id = instrument_config['id']
+            else:
+                self._id = instrument_name
             self._num_panels = len(instrument_config['detectors'])
             self._beam_energy = instrument_config['beam']['energy']  # keV
             self._beam_vector = calc_beam_vec(
@@ -325,9 +334,14 @@ class HEDMInstrument(object):
     @beam_vector.setter
     def beam_vector(self, x):
         x = np.array(x).flatten()
-        assert len(x) == 3 and sum(x*x) > 1-ct.sqrt_epsf, \
-            'input must have length = 3 and have unit magnitude'
-        self._beam_vector = x
+        if len(x) == 3:
+            assert sum(x*x) > 1-ct.sqrt_epsf, \
+                'input must have length = 3 and have unit magnitude'
+            self._beam_vector = x
+        elif len(x) == 2:
+            self._beam_vector = calc_beam_vec(*x)
+        else:
+            raise RuntimeError("input must be a unit vector or angle pair")
         # ...maybe change dictionary item behavior for 3.x compatibility?
         for detector_id in self.detectors:
             panel = self.detectors[detector_id]
@@ -394,6 +408,8 @@ class HEDMInstrument(object):
         # initialize output dictionary
 
         par_dict = {}
+
+        par_dict['id'] = self.id
 
         azim, pola = calc_angles_from_beam_vec(self.beam_vector)
         beam = dict(
@@ -1241,7 +1257,8 @@ class PlanarDetector(object):
 
         does NOT need to repeat start vertex for closure
         """
-        assert len(vertex_array) >= 3
+        if vertex_array is not None:
+            assert len(vertex_array) >= 3
         self._roi = vertex_array
 
     @property
