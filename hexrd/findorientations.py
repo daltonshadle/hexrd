@@ -567,7 +567,7 @@ def find_orientations(cfg, hkls=None, clean=False, profile=False):
         quats = np.load(qgrid_f).T
         logger.info("Using %s for full quaternion search", qgrid_f)
         hkl_ids = None
-    except (IOError, ValueError, AttributeError):
+    except (IOError, ValueError, AttributeError, TypeError):
         # or doing a seeded search?
         logger.info("Defaulting to seeded search")
         hkl_seeds = cfg.find_orientations.seed_search.hkl_seeds
