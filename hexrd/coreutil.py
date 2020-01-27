@@ -214,7 +214,7 @@ def get_instrument_parameters(cfg):
     with open(cfg.instrument.parameters, 'r') as f:
         # only one panel for now
         # TODO: configurize this
-        return [cfg for cfg in yaml.load_all(f)][0]
+        return [cfg for cfg in yaml.load_all(f, Loader=yaml.SafeLoader)][0]
 
 
 def get_detector_parameters(instr_cfg):
